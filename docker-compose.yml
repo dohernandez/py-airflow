@@ -27,7 +27,7 @@ services:
       EXECUTOR: Local
     volumes:
       - .:/usr/local/airflow/src/pyairflow/
-      - ./dags:/usr/local/airflow/dags
+      - ./demo/dags:/usr/local/airflow/dags
     ports:
       - "8080:8080"
     command: webserver

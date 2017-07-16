@@ -14,12 +14,19 @@ WEBSERVER = py-airflow-webserver
 all: usage
 
 usage:
-	@echo "build:  Build the docker image for the project."
-	@echo "freeze:  Print all the python package installed in the docker image."
+	@echo "build:  Build the py-airflow docker image."
+	@echo "freeze:  Print all the python package installed in the py-airflow docker image."
 	@echo "tests:  Run test suite using nose and print test coverage."
-	@echo "run:  Run the container."
-	@echo "re-run: Stop the container, remove it and run it again."
-	@echo "webserver-log: Tail the webserver container logs."
+	@echo "ariflow-run:  Run the airflow containers."
+	@echo "ariflow-stop:  Stop the airflow containers."
+	@echo "ariflow-re-build:  Stop the airflow containers and rebuild the airflow dcoker image"
+	@echo "ariflow-restart: Stop the airflow containers, remove them and run them again."
+	@echo "ariflow-freeze:  Print all the python package installed in the airflow docker image."
+	@echo "ariflow-log: Tail the ariflow webserver container logs."
+	@echo "ariflow-backfill: Run backfill in airflow. Use ARG to specify airflow options. \n\t\t \
+	Example: \n\t\t\t \
+	make ARGS="-s 2017-07-15T02:00:00 -e 2017-07-15T02:00:00 test_external_sensor" backfill"
+	@echo "ariflow-list-dags: List airflow dags."
 
 build:
 	@printf "$(COLOR)==> Building docker image ...$(NO_COLOR)\n"
@@ -35,21 +42,40 @@ tests:
 	nosetests --nocapture --nologcapture --detailed-errors --verbosity=2 --traverse-namespace \
 	--with-coverage --cover-erase --cover-package=$(PROJECT_NAME) --rednose $(WORKDIR)/tests
 
-run:
-	@printf "$(COLOR)==> Spinning up container ...$(NO_COLOR)\n"
+ariflow-run:
+	@printf "$(COLOR)==> Spinning up containers ...$(NO_COLOR)\n"
 	@docker-compose up -d
 
-stop:
-	@printf "$(COLOR)==> Stopping the container ...$(NO_COLOR)\n"
+ariflow-stop:
+	@printf "$(COLOR)==> Stopping the containers ...$(NO_COLOR)\n"
 	@docker-compose down
 
-re-run:
-	@printf "$(COLOR)==> Rebuilding and spinning up container ...$(NO_COLOR)\n"
+ariflow-re-build: stop
+	@printf "$(COLOR)==> Rebuilding and spinning up containers ...$(NO_COLOR)\n"
 	@docker-compose up --build -d
 
-webserver-log:
-	@printf "$(COLOR)==> Printing airflow webserver log ...$(NO_COLOR)\n"
+restart: ariflow-stop ariflow-run
+
+airflow-freeze:
+	@printf "$(COLOR)==> Checking python dependencies installed in the image ...$(NO_COLOR)\n"
+	@docker exec -it $(WEBSERVER) pip freeze
+
+ariflow-restart:
+	@printf "$(COLOR)==> Restarting airflow ...$(NO_COLOR)\n"
+	@docker exec -it $(WEBSERVER) pkill gunicorn
+
+ariflow-log:
+	@printf "$(COLOR)==> Printing service webserver log ...$(NO_COLOR)\n"
 	@docker logs $(WEBSERVER)
 
+ariflow-backfill:
+	@printf "$(COLOR)==> Running backfill ...$(NO_COLOR)\n"
+	@docker exec -it $(WEBSERVER) airflow backfill $(ARGS)
 
-.PHONY: all usage build tests run
+ariflow-list-dags:
+	@printf "$(COLOR)==> Listing dags ...$(NO_COLOR)\n"
+	@docker exec -it $(WEBSERVER) airflow list_dags
+
+
+.PHONY: all usage build tests ariflow-run ariflow-stop ariflow-restart ariflow-re-build \
+ariflow-freeze ariflow-restart ariflow-log ariflow-backfill ariflow-list-dags

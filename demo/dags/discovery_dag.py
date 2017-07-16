@@ -11,7 +11,7 @@ PROJECTS = [
 ]
 
 for project in PROJECTS:
-    dir_project_dag = '/usr/local/airflow/src/pyairflow/{project}'.format(project=project)
+    dir_project_dag = '/usr/local/airflow/src/pyairflow//demo/{project}/dags'.format(project=project)
 
     dhw_bag_dag = DagBag(dir_project_dag)
 
