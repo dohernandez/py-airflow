@@ -1,5 +1,10 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+import logging
+import os
 
+from airflow import configuration as conf
+from abc import ABCMeta, abstractmethod, abstractproperty
+from datetime import timedelta
+from airflow import settings, models
 from airflow.operators import BashOperator, HiveOperator, ExternalTaskSensor
 
 
@@ -118,28 +123,37 @@ class ExternalTaskSensorDAGTask(ExternalTaskSensor, DAGTask):
         if (external_dag_id is None) ^ (external_task_id is None):
             raise ValueError("Please specify the external_dag_id and the external_task_id parameters!")
 
+        self.task_id = task_id if task_id else self.generate_task_id()
         self.external_dag_id = external_dag_id
         self.external_task_id = external_task_id
 
         super(ExternalTaskSensorDAGTask, self).__init__(
-            task_id=task_id if task_id else self.generate_task_id(),
-            external_dag_id=external_dag_id,
-            external_task_id=external_task_id,
+            task_id=self.task_id,
+            external_dag_id=self.external_dag_id,
+            external_task_id=self.external_task_id,
             # time difference between this DAG and the DAG containing the task_id whose
             # execution will poked for success
-            execution_date_fn=self._execution_date,
+            execution_delta=timedelta(minutes=0),
             timeout=timeout,
             **kwargs
         )
-
-    def _execution_date(self):
-        external_dag = globals()[self.external_dag_id]  # :type BaseOperator
 
     def generate_task_id(self):
         return 'external-sensor-{external_dag_id}.{external_task_id}'.format(
             external_dag_id=self.external_dag_id,
             external_task_id=self.external_task_id
         )
+
+    def poke(self, context):
+        external_dag = self.dagbag.get_dag(self.external_dag_id)
+
+        self.execution_delta = context['execution_date'] - external_dag.previous_schedule(context['execution_date'])
+
+        return super(ExternalTaskSensorDAGTask, self).poke(context)
+
+    @property
+    def dagbag(self):
+        return models.DagBag(os.path.expanduser(conf.get('core', 'DAGS_FOLDER')))
 
 
 class PythonETLDAGTask(BashOperatorDAGTask, DAGTask):
