@@ -1,0 +1,33 @@
+version: '3'
+services:
+
+  postgres:
+    container_name: py-airflow-db
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: "airflow"
+      POSTGRES_PASSWORD: "airflow"
+      POSTGRES_DB: "airflow"
+    ports:
+      - "5432:5432"
+
+  webserver:
+    container_name: py-airflow-webserver
+    build:
+      context: .
+      dockerfile: airflow-webserver-Dockerfile
+    image: dohernandez/airflow-webserver
+    restart: always
+    links:
+      - postgres
+    depends_on:
+      - postgres
+    environment:
+      LOAD_EX: n
+      EXECUTOR: Local
+    volumes:
+      - .:/usr/local/airflow/src/pyairflow/
+      - ./dags:/usr/local/airflow/dags
+    ports:
+      - "8080:8080"
+    command: webserver

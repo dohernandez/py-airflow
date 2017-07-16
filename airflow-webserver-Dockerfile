@@ -1,0 +1,10 @@
+FROM puckel/docker-airflow:1.7.1.3-7
+MAINTAINER Darien Hernandez "dohernandez@hellofresh.com"
+
+USER root
+
+# Install packages
+RUN apt-get update && apt-get install -y \
+    git
+
+RUN pip install --process-dependency-links -e git+git://github.com/dohernandez/py-airflow@master#egg=pyairflow-0.1.0
