@@ -6,14 +6,14 @@ from airflow.operators import BashOperator
 from pyairflow.dag import DAG
 
 with DAG(
-        dag_id='check_for_lags',
-        schedule_interval='15 17 * * *',
-        start_date=datetime(2017, 07, 15, 17, 15),
+        dag_id='print_date',
+        schedule_interval='40 17 * * *',
+        start_date=datetime(2017, 07, 16, 17, 40),
 ) as dag:
     (
         dag
         >> BashOperator(
-            task_id='check_lag',
+            task_id='print_date',
             bash_command='date'
         )
     )

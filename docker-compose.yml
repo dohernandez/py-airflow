@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: "airflow"
       POSTGRES_PASSWORD: "airflow"
       POSTGRES_DB: "airflow"
+    volumes:
+      - ./demo/var/pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
@@ -31,3 +33,19 @@ services:
     ports:
       - "8080:8080"
     command: webserver
+
+  scheduler:
+    container_name: py-airflow-scheduler
+    image: dohernandez/airflow-webserver
+    restart: always
+    links:
+      - webserver
+    depends_on:
+      - webserver
+    environment:
+      LOAD_EX: n
+      EXECUTOR: Local
+    volumes:
+      - .:/usr/local/airflow/src/pyairflow/
+      - ./demo/dags:/usr/local/airflow/dags
+    command: scheduler

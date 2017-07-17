@@ -7,6 +7,7 @@ IMAGE_NAME = dohernandez/$(PROJECT_NAME)
 CONTAINER_NAME = $(PROJECT_NAME)
 
 WEBSERVER = py-airflow-webserver
+SCHEDULER = py-airflow-scheduler
 
 # do not edit the following lines
 # for shell usage
@@ -27,9 +28,10 @@ usage:
 	Example: \n\t\t\t \
 	make ARGS="-s 2017-07-15T02:00:00 -e 2017-07-15T02:00:00 test_external_sensor" backfill"
 	@echo "airflow-list-dags: List airflow dags."
+	@echo "airflow-scheduler-log: Tail the airflow scheduler container logs."
 
 build:
-	@printf "$(COLOR)==> Building docker image ...$(NO_COLOR)\n"
+	@printf "$(COLOR)==> Building $(IMAGE_NAME) docker image ...$(NO_COLOR)\n"
 	@docker build -t $(IMAGE_NAME) .
 
 freeze:
@@ -54,17 +56,17 @@ airflow-re-build: stop
 	@printf "$(COLOR)==> Rebuilding and spinning up containers ...$(NO_COLOR)\n"
 	@docker-compose up --build -d
 
-restart: airflow-stop airflow-run
+airflow-restart: airflow-stop airflow-run
 
 airflow-freeze:
 	@printf "$(COLOR)==> Checking python dependencies installed in the image ...$(NO_COLOR)\n"
 	@docker exec -it $(WEBSERVER) pip freeze
 
-airflow-restart:
+airflow-webserver-restart:
 	@printf "$(COLOR)==> Restarting airflow ...$(NO_COLOR)\n"
 	@docker exec -it $(WEBSERVER) pkill gunicorn
 
-airflow-log:
+airflow-webserver-log:
 	@printf "$(COLOR)==> Printing service webserver log ...$(NO_COLOR)\n"
 	@docker logs $(WEBSERVER)
 
@@ -76,6 +78,15 @@ airflow-list-dags:
 	@printf "$(COLOR)==> Listing dags ...$(NO_COLOR)\n"
 	@docker exec -it $(WEBSERVER) airflow list_dags
 
+airflow-scheduler-log:
+	@printf "$(COLOR)==> Printing service scheduler log ...$(NO_COLOR)\n"
+	@docker logs $(SCHEDULER)
+
+airflow-scheduler-restart:
+	@printf "$(COLOR)==> Restarting airflow ...$(NO_COLOR)\n"
+	@docker exec -it $(SCHEDULER) pkill gunicorn
+
 
 .PHONY: all usage build tests airflow-run airflow-stop airflow-restart airflow-re-build \
-airflow-freeze airflow-restart airflow-log airflow-backfill airflow-list-dags
+airflow-freeze airflow-webserver-restart airflow-webserver-log airflow-backfill airflow-list-dags airflow-scheduler-log \
+airflow-scheduler-restart
