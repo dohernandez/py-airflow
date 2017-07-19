@@ -7,7 +7,6 @@ IMAGE_NAME = dohernandez/$(PROJECT_NAME)
 CONTAINER_NAME = $(PROJECT_NAME)
 
 WEBSERVER = py-airflow-webserver
-SCHEDULER = py-airflow-scheduler
 
 # do not edit the following lines
 # for shell usage
@@ -28,7 +27,6 @@ usage:
 	Example: \n\t\t\t \
 	make ARGS="-s 2017-07-15T02:00:00 -e 2017-07-15T02:00:00 test_external_sensor" backfill"
 	@echo "airflow-list-dags: List airflow dags."
-	@echo "airflow-scheduler-log: Tail the airflow scheduler container logs."
 
 build:
 	@printf "$(COLOR)==> Building $(IMAGE_NAME) docker image ...$(NO_COLOR)\n"
@@ -51,6 +49,10 @@ airflow-run:
 airflow-stop:
 	@printf "$(COLOR)==> Stopping the containers ...$(NO_COLOR)\n"
 	@docker-compose down
+
+airflow-scheduler-run:
+	@printf "$(COLOR)==> Running scheduler ...$(NO_COLOR)\n"
+	@docker exec -it $(WEBSERVER) airflow scheduler -D
 
 airflow-re-build: stop
 	@printf "$(COLOR)==> Rebuilding and spinning up containers ...$(NO_COLOR)\n"
@@ -78,15 +80,6 @@ airflow-list-dags:
 	@printf "$(COLOR)==> Listing dags ...$(NO_COLOR)\n"
 	@docker exec -it $(WEBSERVER) airflow list_dags
 
-airflow-scheduler-log:
-	@printf "$(COLOR)==> Printing service scheduler log ...$(NO_COLOR)\n"
-	@docker logs $(SCHEDULER)
-
-airflow-scheduler-restart:
-	@printf "$(COLOR)==> Restarting airflow ...$(NO_COLOR)\n"
-	@docker exec -it $(SCHEDULER) pkill gunicorn
-
 
 .PHONY: all usage build tests airflow-run airflow-stop airflow-restart airflow-re-build \
-airflow-freeze airflow-webserver-restart airflow-webserver-log airflow-backfill airflow-list-dags airflow-scheduler-log \
-airflow-scheduler-restart
+airflow-freeze airflow-webserver-restart airflow-webserver-log airflow-backfill airflow-list-dags airflow-scheduler-run

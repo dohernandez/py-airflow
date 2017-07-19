@@ -15,7 +15,7 @@ for project in PROJECTS:
     for projects_dag in glob.glob(path_projects_dag):
         dhw_bag_dag = DagBag(projects_dag)
 
-        logging.info('Filled up {dag_count} from {projects_dag}'.format(
+        logging.info('Filled up {dag_count} DAG(s) from {projects_dag}'.format(
             dag_count=dhw_bag_dag.size(),
             projects_dag=projects_dag
         ))

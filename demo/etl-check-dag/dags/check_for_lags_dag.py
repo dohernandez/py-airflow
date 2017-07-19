@@ -8,7 +8,7 @@ from pyairflow.dag import DAG
 with DAG(
         dag_id='check_for_lags',
         schedule_interval='15 17 * * *',
-        start_date=datetime(2017, 07, 15, 17, 15),
+        start_date=datetime(2017, 07, 14, 17, 15),
 ) as dag:
     (
         dag
