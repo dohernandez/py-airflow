@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 NAME = "pyairflow"
-VERSION = "0.1.0"
+VERSION = "1.0.0"
 
 REQUIRES = [
     'pyconfig<1'
