@@ -11,7 +11,7 @@ services:
     volumes:
       - ./demo/var/pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   webserver:
     container_name: py-airflow-webserver
@@ -25,8 +25,8 @@ services:
     depends_on:
       - postgres
     environment:
-      LOAD_EX: n
-      EXECUTOR: Local
+      LOAD_EX: "n"
+      EXECUTOR: "Local"
     volumes:
       - .:/usr/local/airflow/src/pyairflow/
       - ./demo/dags:/usr/local/airflow/dags
