@@ -54,7 +54,7 @@ airflow-scheduler-run:
 	@printf "$(COLOR)==> Running scheduler ...$(NO_COLOR)\n"
 	@docker exec -it $(WEBSERVER) airflow scheduler -D
 
-airflow-re-build: stop
+airflow-re-build: airflow-stop
 	@printf "$(COLOR)==> Rebuilding and spinning up containers ...$(NO_COLOR)\n"
 	@docker-compose up --build -d
 

@@ -20,7 +20,7 @@ class DAG(AirflowDag):
 
     _owner = 'mapr'
     _depends_on_past = True
-    _email = ['dwh-global@hellofresh.com']
+    _email = ['dohernandez@gmail.com']
     _email_on_failure = True
     _email_on_retry = True
     _retries = 1

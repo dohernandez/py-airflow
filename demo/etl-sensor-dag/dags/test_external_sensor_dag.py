@@ -23,4 +23,4 @@ with DAG(
         )
     )
 
-dag.re_scheduler('40 17 * * *')
+# dag.re_scheduler('40 17 * * *')
