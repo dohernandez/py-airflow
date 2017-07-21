@@ -1,11 +1,13 @@
-import logging
 import os
+from abc import ABCMeta, abstractmethod
+
+from datetime import timedelta
 
 from airflow import configuration as conf
-from abc import ABCMeta, abstractmethod, abstractproperty
-from datetime import timedelta
-from airflow import settings, models
-from airflow.operators import BashOperator, HiveOperator, ExternalTaskSensor
+from airflow import models
+from airflow.operators.bash_operator import BashOperator
+from airflow.operators.hive_operator import HiveOperator
+from airflow.operators.sensors import ExternalTaskSensor
 
 
 class DAGTask(object):

@@ -1,8 +1,6 @@
-import logging
-
 from datetime import datetime
 
-from airflow.operators import BashOperator
+from airflow.operators.bash_operator import BashOperator
 from pyairflow.dag import DAG
 
 with DAG(

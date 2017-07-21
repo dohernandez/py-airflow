@@ -1,14 +1,15 @@
+import inspect
 import os
 from abc import ABCMeta
+
+import sqlalchemy as sqla
 from datetime import timedelta, datetime
 
-from airflow import configuration as conf
 from airflow import DAG as AirflowDag, models
+from airflow import configuration as conf
 from airflow import settings
 from airflow.utils.dates import cron_presets
 from airflow.utils.state import State
-
-import sqlalchemy as sqla
 
 
 class DAG(AirflowDag):
@@ -42,6 +43,8 @@ class DAG(AirflowDag):
             start_date=start_date,
             **kwargs
         )
+
+        self.fileloc = inspect.stack()[1][1]
 
     def re_scheduler(self, re_schedule_interval):
         session = settings.Session
