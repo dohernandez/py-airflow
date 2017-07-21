@@ -1,12 +1,9 @@
 import inspect
-import os
 from abc import ABCMeta
 
-import sqlalchemy as sqla
 from datetime import timedelta, datetime
 
 from airflow import DAG as AirflowDag, models
-from airflow import configuration as conf
 from airflow import settings
 from airflow.utils.dates import cron_presets
 from airflow.utils.state import State
@@ -47,16 +44,10 @@ class DAG(AirflowDag):
         self.fileloc = inspect.stack()[1][1]
 
     def re_scheduler(self, re_schedule_interval):
-        session = settings.Session
-        dag_run = models.DagRun
+        self.set_schedule_interval(re_schedule_interval)
+        self.update_last_run()
 
-        last_dag_run = session.query(
-            dag_run.dag_id,
-            sqla.func.max(dag_run.execution_date).label('execution_date')
-        ).filter(dag_run.dag_id == self.dag_id) \
-            .group_by(dag_run.dag_id) \
-            .one_or_none()
-
+    def set_schedule_interval(self, re_schedule_interval):
         self.schedule_interval = re_schedule_interval
         if re_schedule_interval in cron_presets:
             self._schedule_interval = cron_presets.get(re_schedule_interval)
@@ -65,8 +56,12 @@ class DAG(AirflowDag):
         else:
             self._schedule_interval = re_schedule_interval
 
+    def update_last_run(self):
+        last_dag_run = self.last_run()
+
         if last_dag_run:
             dag_task_execution_date = self.previous_schedule(last_dag_run.execution_date)
+            print dag_task_execution_date
 
             if dag_task_execution_date.date() != last_dag_run.execution_date.date():
                 dag_task_execution_date = datetime.combine(
@@ -74,7 +69,12 @@ class DAG(AirflowDag):
                     dag_task_execution_date.time()
                 )
 
+            print dag_task_execution_date
+            print last_dag_run.execution_date
+
             if dag_task_execution_date != last_dag_run.execution_date:
+                session = settings.Session
+
                 dag_re_schedule_run = models.DagRun(
                     dag_id=self.dag_id,
                     run_id='scheduled__' + dag_task_execution_date.isoformat(),
@@ -99,6 +99,17 @@ class DAG(AirflowDag):
                     session.add(task_instance)
                     session.commit()
 
-    @property
-    def dagbag(self):
-        return models.DagBag(os.path.expanduser(conf.get('core', 'DAGS_FOLDER')))
+    def last_run(self):
+        session = settings.Session
+        dag_run = models.DagRun
+
+        last_dag_run = session.query(
+            dag_run.id,
+            dag_run.dag_id,
+            dag_run.execution_date
+        ).filter(dag_run.dag_id == self.dag_id) \
+            .order_by(dag_run.id.desc()) \
+            .limit(1) \
+            .one_or_none()
+
+        return last_dag_run
